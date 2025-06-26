@@ -1,0 +1,37 @@
+# Terraform state
+*.tfstate
+*.tfstate.*
+.terraform/
+.crash/
+*.tfvars
+*.tfvars.json
+.terraform.lock.hcl
+
+# Sensitive override files (should not be committed!)
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# IDE / editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS garbage
+.DS_Store
+Thumbs.db
+
+# Logs & temp
+*.log
+*.bak
+
+# Compiled binaries (Go CLI tool later)
+*.out
+*.exe
+*.bin
+
+# SSH Keys
+*.pem
+*.pub
