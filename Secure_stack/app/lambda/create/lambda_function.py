@@ -90,7 +90,7 @@ def lambda_handler(event, context):
                 Bucket=bucket_name,
                 Key=s3_key,
                 Body=content_bytes,
-                ContentType="text/plain"
+                ContentType="text/plain",
                 ServerSideEncryption="AES256"
             )
         except Exception as e:
