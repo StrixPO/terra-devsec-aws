@@ -35,3 +35,57 @@ Thumbs.db
 # SSH Keys
 *.pem
 *.pub
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environment
+.venv/
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Lambda deployment packages
+*.zip
+
+# Local Terraform files
+.terraform/
+.terraform.lock.hcl
+terraform.tfstate
+terraform.tfstate.backup
+
+# AWS credentials (NEVER COMMIT THIS)
+*.pem
+*.key
+*.crt
+*.env
+.env.*
+
+# Editor/IDE junk
+.vscode/
+.idea/
+*.swp
+*.swo
+*.DS_Store
+
+# Logs and test reports
+*.log
+*.out
+*.tmp
+
+# __Test__ output
+coverage/
+htmlcov/
+.tox/
+.nox/
+.pytest_cache/
+.junit.xml
+.cache/
+test-results/
+
+# Ignore Mac files
+.DS_Store

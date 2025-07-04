@@ -33,3 +33,16 @@ variable "key_path" {
 variable "ami_id" {
   default = "ami-0b0dcb5067f052a63" # Amazon Linux 2 in us-east-1
 }
+
+variable "create_zip_path" {
+  description = "Path to Lambda zip file"
+  type        = string
+  default     = "../app/lambda/create/function.zip"
+}
+
+variable "get_zip_path" {
+  description = "Path to Lambda zip file"
+  type        = string
+  default     = "../app/lambda/get/function.zip"
+}
+

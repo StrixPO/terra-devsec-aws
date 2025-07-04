@@ -43,6 +43,28 @@ module "storage" {
 
 }
 
+
+
+module "app-lambda_create" {
+  source          = "./modules/app-lambda/create"
+  project         = var.project
+  create_zip_path = var.create_zip_path
+  bucket_name     = module.storage.bucket_name
+  table_name      = module.storage.table_name
+  dynamodb_table_arn = module.storage.dynamodb_table_arn
+  bucket_arn = module.storage.bucket_arn
+}
+
+module "app_lambda_get" {
+  source             = "./modules/app-lambda/get"
+  project            = var.project
+  get_zip_path = var.get_zip_path
+  table_name         = module.storage.table_name
+  api_id             = module.app-lambda_create.api_id
+  api_execution_arn  = module.app-lambda_create.execution_arn
+  lambda_role_arn    =  module.app-lambda_create.lambda_exec_arn
+}
+
 resource "aws_iam_role_policy_attachment" "paste_access" {
   role       = module.app.secure_app_role_name 
   policy_arn = module.storage.secure_paste_policy_arn
@@ -51,3 +73,4 @@ resource "aws_iam_role_policy_attachment" "paste_access" {
 output "bastion_ssh" {
   value = "ssh -i ${var.key_path} ec2-user@${module.bastion.bastion_public_ip}"
 }
+
