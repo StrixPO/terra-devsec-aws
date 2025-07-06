@@ -41,12 +41,12 @@ variable "ami_id" {
 variable "create_zip_path" {
   description = "Path to Lambda zip file"
   type        = string
-  default     = "../app/lambda/create/function.zip"
+  default     = "../app/lambda/create/create.zip"
 }
 
 variable "get_zip_path" {
   description = "Path to Lambda zip file"
   type        = string
-  default     = "../app/lambda/get/function.zip"
+  default     = "../app/lambda/get/get.zip"
 }
 
