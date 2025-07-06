@@ -7,7 +7,7 @@ variable "vpc_cidr" {
 }
 
 variable "aws_region" {
-  type = string
+  type    = string
   default = "us-east-1"
 }
 variable "public_subnets" {
@@ -27,11 +27,11 @@ variable "nat_ami_id" {
 }
 
 variable "key_name" {
-  default = "secure-stack" 
+  default = "secure-stack"
 }
 
 variable "key_path" {
-    default = "~/.ssh/secure-stack.pem"
+  default = "~/.ssh/secure-stack.pem"
 }
 
 variable "ami_id" {
