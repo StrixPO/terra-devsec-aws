@@ -17,7 +17,7 @@ DEFAULT_API_URL = "https://ptto3xcw05.execute-api.us-east-1.amazonaws.com"
 @click.option('--api-url', default=DEFAULT_API_URL, help='Custom API base URL')
 @click.pass_context
 def cli(ctx, api_url):
-    """SecurePaste CLI - createe and fetch secure pastes."""
+    """SecurePaste CLI - create and fetch secure pastes."""
     ctx.ensure_object(dict)
     ctx.obj['API_URL'] = api_url
 
