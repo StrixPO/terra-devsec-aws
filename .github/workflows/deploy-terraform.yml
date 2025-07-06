@@ -49,8 +49,8 @@ jobs:
         run: |
           mkdir -p artifacts
 
-          zip artifacts/create.zip SecurePaste/app/lambda/create/lambda_function.py
-          zip artifacts/get.zip SecurePaste/app/lambda/get/lambda_function.py
+          zip artifacts/create.zip Secure_stack/app/lambda/create/lambda_function.py
+          zip artifacts/get.zip Secure_stack/app/lambda/get/lambda_function.py
       - name: Terraform Plan
         run: terraform plan
         env:
