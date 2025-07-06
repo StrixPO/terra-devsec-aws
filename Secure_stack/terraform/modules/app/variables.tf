@@ -4,3 +4,6 @@ variable "project" {}
 variable "vpc_id"{}
 variable "bastion_sg_id" {}
 variable "subnet_id" {}
+variable "execution_arn" {
+  
+}

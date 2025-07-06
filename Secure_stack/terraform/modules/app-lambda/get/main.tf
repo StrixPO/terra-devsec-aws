@@ -12,6 +12,9 @@ resource "aws_lambda_function" "get_paste" {
   }
 }
 
+
+##########API GATEWAY###########################
+
 resource "aws_apigatewayv2_integration" "lambda_get_integration" {
   api_id                 = var.api_id
   integration_type       = "AWS_PROXY"

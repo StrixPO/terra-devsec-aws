@@ -26,6 +26,7 @@ module "app" {
     subnet_id   = module.vpc.private_subnets[0]
     app_ami_id = var.nat_ami_id
     bastion_sg_id    = module.bastion.bastion_sg_id
+    execution_arn = module.app-lambda_create.execution_arn
 }
 
 module "bastion" {
@@ -48,6 +49,7 @@ module "storage" {
 module "app-lambda_create" {
   source          = "./modules/app-lambda/create"
   project         = var.project
+  region = var.aws_region
   create_zip_path = var.create_zip_path
   bucket_name     = module.storage.bucket_name
   table_name      = module.storage.table_name
@@ -65,10 +67,18 @@ module "app_lambda_get" {
   lambda_role_arn    =  module.app-lambda_create.lambda_exec_arn
 }
 
+module "logging" {
+  source  = "./modules/logging"
+  project = var.project
+  lambda_name = module.app-lambda_create.lambda_name
+}
+
 resource "aws_iam_role_policy_attachment" "paste_access" {
   role       = module.app.secure_app_role_name 
   policy_arn = module.storage.secure_paste_policy_arn
 }
+
+
 
 output "bastion_ssh" {
   value = "ssh -i ${var.key_path} ec2-user@${module.bastion.bastion_public_ip}"

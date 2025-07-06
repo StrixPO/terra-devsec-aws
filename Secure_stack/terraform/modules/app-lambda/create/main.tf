@@ -55,6 +55,11 @@ resource  "aws_apigatewayv2_stage" "default" {
     api_id = aws_apigatewayv2_api.http_api.id 
     name = "$default"
     auto_deploy = true 
+
+    default_route_settings {
+      throttling_burst_limit = 1 # req per burst
+      throttling_rate_limit = 2  # req per sec
+    }
 }
 
 resource "aws_lambda_permission" "allow_apigw_invoke" {

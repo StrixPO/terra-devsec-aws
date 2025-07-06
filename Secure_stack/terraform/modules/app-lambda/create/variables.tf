@@ -25,3 +25,7 @@ variable "dynamodb_table_arn" {
 variable "bucket_arn" {
   
 }
+
+variable "region" {
+  type = string
+}
