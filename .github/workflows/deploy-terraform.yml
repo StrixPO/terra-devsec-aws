@@ -47,14 +47,10 @@ jobs:
         run: terraform validate
       - name: Zip Lambda Functions
         run: |
-          mkdir -p ../../artifacts
+          mkdir -p artifacts
 
-          cd ../app/lambda/create
-          zip ../../artifacts/create.zip lambda_function.py
-
-          cd ../get
-          zip ../../artifacts/get.zip lambda_function.py
-
+          zip artifacts/create.zip SecurePaste/app/lambda/create/lambda_function.py
+          zip artifacts/get.zip SecurePaste/app/lambda/get/lambda_function.py
       - name: Terraform Plan
         run: terraform plan
         env:
