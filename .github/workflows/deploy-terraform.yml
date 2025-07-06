@@ -14,7 +14,7 @@ jobs:
 
     defaults:
       run:
-        working-directory: ./terraform
+        working-directory: ./SecurePaste/terraform
 
     steps:
       - name: Checkout code
@@ -45,25 +45,25 @@ jobs:
 
       - name: Terraform Validate
         run: terraform validate
-
       - name: Zip Lambda Functions
         run: |
+          mkdir -p ../../artifacts
+
           cd ../app/lambda/create
-          zip -r function.zip lambda_function.py
-          mv function.zip ../../../
+          zip ../../artifacts/create.zip lambda_function.py
+
           cd ../get
-          zip -r function.zip lambda_function.py
-          mv function.zip ../../../
+          zip ../../artifacts/get.zip lambda_function.py
 
       - name: Terraform Plan
         run: terraform plan
         env:
-          TF_VAR_create_zip_path: ../function.zip
-          TF_VAR_get_zip_path: ../function.zip
+          TF_VAR_create_zip_path: ../../artifacts/create.zip
+          TF_VAR_get_zip_path: ../../artifacts/get.zip
 
       - name: Terraform Apply
         if: github.ref == 'refs/heads/main'
         run: terraform apply -auto-approve
         env:
-          TF_VAR_create_zip_path: ../function.zip
-          TF_VAR_get_zip_path: ../function.zip
+          TF_VAR_create_zip_path: ../../artifacts/create.zip
+          TF_VAR_get_zip_path: ../../artifacts/get.zip
