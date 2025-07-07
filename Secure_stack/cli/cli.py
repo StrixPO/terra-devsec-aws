@@ -57,7 +57,7 @@ def create(ctx, paste_id, file, text, expiry, encrypt):
 @cli.command()
 @click.pass_context
 @click.argument('paste_id')
-@click.option('--output', type=click.Path(), help='Save paste to file')
+@click.option('--output', type=click.Path(), help='Save paste tofile')
 @click.option('--json', 'as_json', is_flag=True, help='Return full JSON instead of content only')
 def get(ctx, paste_id, output, as_json):
     """Retrieve a paste by ID."""
