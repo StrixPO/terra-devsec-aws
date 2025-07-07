@@ -37,7 +37,7 @@ def lambda_handler(event, context):
         body = json.loads(event.get("body", "{}"))
         paste_id = body.get("paste_id", str(uuid.uuid4()))
         content = body.get("content", "")
-        expiry_seconds = int(body.get("expiry_seconds", 3600))
+        expiry_seconds = int(body.get("expiry_second", 3600))
         content_encrypted = body.get("content_encrypted", False)
     except Exception as e:
         return {
