@@ -55,12 +55,12 @@ jobs:
       - name: Terraform Plan
         run: terraform plan
         env:
-          TF_VAR_create_zip_path: ../../artifacts/create.zip
-          TF_VAR_get_zip_path: ../../artifacts/get.zip
+          TF_VAR_create_zip_path: artifacts/create.zip
+          TF_VAR_get_zip_path: artifacts/get.zip
 
       - name: Terraform Apply
         if: github.ref == 'refs/heads/main'
         run: terraform apply -auto-approve
         env:
-          TF_VAR_create_zip_path: ../../artifacts/create.zip
-          TF_VAR_get_zip_path: ../../artifacts/get.zip
+          TF_VAR_create_zip_path: artifacts/create.zip
+          TF_VAR_get_zip_path: artifacts/get.zip
