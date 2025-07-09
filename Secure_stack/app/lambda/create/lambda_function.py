@@ -31,7 +31,16 @@ def detect_secrets(content: str) -> list:
     return detected
 
 def lambda_handler(event, context):
-    print("EVENT:", json.dumps(event))
+    if event["requestContext"]["http"]["method"] == "OPTIONS":
+        return {
+            "statusCode": 200,
+            "headers": {
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+                "Access-Control-Allow-Headers": "*"
+            },
+            "body": json.dumps({"message": "CORS preflight OK"})
+        }
 
     try:
         body = json.loads(event.get("body", "{}"))
@@ -42,6 +51,9 @@ def lambda_handler(event, context):
     except Exception as e:
         return {
             "statusCode": 400,
+            "headers": {  
+                "Access-Control-Allow-Origin": "*"
+            },
             "body": json.dumps({"message": f"Invalid input: {e}"})
         }
     
@@ -96,6 +108,9 @@ def lambda_handler(event, context):
         except Exception as e:
             return {
                 "statusCode": 500,
+                "headers": {  
+                "Access-Control-Allow-Origin": "*"
+            },
                 "body": json.dumps({
                     "message": "Failed to upload to S3",
                     "error": str(e)
@@ -128,6 +143,9 @@ def lambda_handler(event, context):
     except Exception as e:
         return {
             "statusCode": 500,
+            "headers": { 
+                "Access-Control-Allow-Origin": "*"
+            },
             "body": json.dumps({
                 "message": "Internal server error",
                 "error": str(e)
@@ -137,9 +155,10 @@ def lambda_handler(event, context):
 
     return {
     "statusCode": 201,
-    "headers": {
-        "Content-Type": "application/json"
-    },
+    "headers": {  
+            "Access-Control-Allow-Origin": "*",
+            "Content-Type": "application/json"
+        },
     "body": json.dumps({
         "message": f"Paste {paste_id} created.",
         "expiry_seconds": expiry_seconds,

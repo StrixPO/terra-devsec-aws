@@ -17,3 +17,15 @@ output "lambda_exec_arn" {
 output "lambda_name" {
   value = aws_lambda_function.paste_create.function_name
 }
+
+output "lambda_exec_name" {
+  value = aws_iam_role.lambda_exec.name
+}
+
+output "lambda_access_policy_arn" {
+  value = aws_iam_policy.lambda_access.arn
+}
+
+output "execute_arn" {
+  value = "${aws_apigatewayv2_api.http_api.execution_arn}"
+}

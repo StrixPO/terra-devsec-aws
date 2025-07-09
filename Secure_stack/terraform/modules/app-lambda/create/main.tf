@@ -35,6 +35,14 @@ resource "aws_lambda_function" "paste_create" {
 resource "aws_apigatewayv2_api" "http_api" {
     name = "${var.project}-api"
     protocol_type = "HTTP"
+
+  cors_configuration {
+    allow_origins = ["*"]
+    allow_methods = ["GET", "POST", "OPTIONS"]
+    allow_headers = ["*"]
+    expose_headers = ["*"]
+    max_age        = 3600
+  }
 }
 
 resource "aws_apigatewayv2_integration" "lambda_integration" {
@@ -62,6 +70,8 @@ resource  "aws_apigatewayv2_stage" "default" {
     }
 }
 
+
+
 resource "aws_lambda_permission" "allow_apigw_invoke" {
   statement_id  = "AllowAPIGatewayInvoke"
   action        = "lambda:InvokeFunction"
@@ -76,7 +86,10 @@ resource "aws_lambda_permission" "allow_apigw_invoke" {
 
 data "aws_iam_policy_document" "lambda_s3_dynamo_policy" {
     statement {
-      actions = ["s3:PutObject"]
+      actions = [
+        "s3:PutObject",
+        "s3:GetObject"
+        ]
       resources = ["${var.bucket_arn}/*"]
     }
 

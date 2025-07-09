@@ -58,13 +58,18 @@ module "app-lambda_create" {
 }
 
 module "app_lambda_get" {
+  project            = var.project
   source            = "./modules/app-lambda/get"
-  project           = var.project
-  get_zip_path      = var.get_zip_path
-  table_name        = module.storage.table_name
+  bucket_name        = module.storage.bucket_name
+  table_name         = module.storage.table_name
   api_id            = module.app-lambda_create.api_id
-  api_execution_arn = module.app-lambda_create.execution_arn
-  lambda_role_arn   = module.app-lambda_create.lambda_exec_arn
+  get_zip_path    = var.get_zip_path
+  api_execution_arn = module.app-lambda_create.execute_arn
+  lambda_exec_arn = module.app-lambda_create.lambda_exec_arn
+  lambda_exec_name         = module.app-lambda_create.lambda_exec_name
+  lambda_access_policy_arn = module.app-lambda_create.lambda_access_policy_arn
+  
+
 }
 
 module "logging" {
@@ -72,12 +77,6 @@ module "logging" {
   project     = var.project
   lambda_name = module.app-lambda_create.lambda_name
 }
-
-resource "aws_iam_role_policy_attachment" "paste_access" {
-  role       = module.app.secure_app_role_name
-  policy_arn = module.storage.secure_paste_policy_arn
-}
-
 
 
 output "bastion_ssh" {

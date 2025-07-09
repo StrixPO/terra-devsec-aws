@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>SecurePaste</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="container">
+      <h1>🔐 PsstBin</h1>
+      <p class="subtitle">Encrypted. Ephemeral. Yours.</p>
+
+      <section>
+        <h2>Create Paste</h2>
+        <textarea id="create-content" placeholder="Your secret..."></textarea>
+        <input type="text" id="create-id" placeholder="Paste ID (optional)" />
+        <input
+          type="number"
+          id="create-expiry"
+          value="3600"
+          min="60"
+          placeholder="Expiry (sec)"
+        />
+        <label
+          ><input type="checkbox" id="create-encrypt" /> Encrypt (base64)</label
+        >
+        <button onclick="createPaste()">Create</button>
+        <pre id="create-response"></pre>
+      </section>
+
+      <section>
+        <h2>Get Paste</h2>
+        <input type="text" id="get-id" placeholder="Paste ID" />
+        <button onclick="getPaste()">Fetch</button>
+        <pre id="get-response"></pre>
+      </section>
+    </div>
+
+    <script src="script.js"></script>
+  </body>
+</html>
