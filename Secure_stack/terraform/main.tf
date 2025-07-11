@@ -72,6 +72,12 @@ module "app_lambda_get" {
 
 }
 
+module "frontend" {
+  source  = "./modules/frontend"
+  project = var.project
+}
+
+
 module "logging" {
   source      = "./modules/logging"
   project     = var.project

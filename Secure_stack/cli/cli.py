@@ -13,6 +13,13 @@ load_dotenv()
 DEV_MODE = os.getenv("DEV_MODE", "false").lower() == "true"
 DEFAULT_API_URL = "https://ptto3xcw05.execute-api.us-east-1.amazonaws.com"
 
+
+
+@click.group()
+def cli():
+    click.echo("🔐 Welcome to PsstBin - Encrypted. Ephemeral. Yours.\n")
+
+    
 @click.group()
 @click.option('--api-url', default=DEFAULT_API_URL, help='Custom API base URL')
 @click.pass_context

@@ -37,7 +37,8 @@ def lambda_handler(event, context):
             "headers": {
                 "Access-Control-Allow-Origin": "*",
                 "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-                "Access-Control-Allow-Headers": "*"
+                "Access-Control-Allow-Headers": "*",
+                "Access-Control-Allow-Credentials": "true"
             },
             "body": json.dumps({"message": "CORS preflight OK"})
         }
@@ -46,7 +47,7 @@ def lambda_handler(event, context):
         body = json.loads(event.get("body", "{}"))
         paste_id = body.get("paste_id", str(uuid.uuid4()))
         content = body.get("content", "")
-        expiry_seconds = int(body.get("expiry_second", 3600))
+        expiry_seconds = int(body.get("expiry_seconds", 3600))
         content_encrypted = body.get("content_encrypted", False)
     except Exception as e:
         return {
@@ -57,7 +58,7 @@ def lambda_handler(event, context):
             "body": json.dumps({"message": f"Invalid input: {e}"})
         }
     
-    if not re.match(r"^[a-zA-Z0-9_-]{3,50}$", paste_id):
+    if not re.match(r"^[a-zA-Z0-9_-]{10,50}$", paste_id):
         return {
             "statusCode": 400,
             "body": json.dumps({
@@ -128,13 +129,22 @@ def lambda_handler(event, context):
 
     if s3_key:
         item["s3_key"] = {"S": s3_key}
-    if content_str and len(content_bytes) <= MAX_INLINE_SIZE:
+    if not content_encrypted and content_str and len(content_bytes) <= MAX_INLINE_SIZE:
         item["content"] = {"S": content_str}
     if secrets_found:
         item["has_secrets"] = {"BOOL":True}
         item["secret_types"] = {"S": ", ".join(secrets_found)}
+
+    if content_encrypted:
+        salt = body.get("salt")
+        iv = body.get("iv")
+        if salt:
+            item["salt"] = {"S": salt}
+        if iv:
+            item["iv"] = {"S": iv}
     print("Secrets found:", secrets_found)
     print("DynamoDB Item:", json.dumps(item, indent=2))
+
     try:
         dynamodb.put_item(
             TableName=table_name,

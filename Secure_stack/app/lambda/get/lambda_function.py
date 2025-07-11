@@ -128,6 +128,46 @@ def lambda_handler(event, context):
             }
 
         print("Returning successful response.")
+        # return {
+        #     "statusCode": 200,
+        #     "headers": {
+        #         "Access-Control-Allow-Origin": "*",
+        #         "Access-Control-Allow-Headers": "*",
+        #         "Content-Type": "application/json"
+        #     },
+        #     "body": json.dumps({
+        #         "paste_id": paste_id,
+        #         "encrypted": encrypted,
+        #         "content": content,
+        #         "message": "Paste retrieved successfully"
+        #     })
+        # }
+
+        response_body = {
+            "paste_id": paste_id,
+            "encrypted": encrypted,
+            "content": content,
+            "message": "Paste retrieved successfully"
+        }
+
+        # Include salt and iv if encrypted
+        if encrypted:
+            salt = item.get("salt", {}).get("S")
+            iv = item.get("iv", {}).get("S")
+
+            if not salt or not iv:
+                return {
+                    "statusCode": 500,
+                    "headers": {"Access-Control-Allow-Origin": "*"},
+                    "body": json.dumps({
+                        "message": "Encrypted paste missing required decryption metadata (salt/iv)"
+                    })
+                }
+
+            response_body["salt"] = salt
+            response_body["iv"] = iv
+
+
         return {
             "statusCode": 200,
             "headers": {
@@ -135,12 +175,7 @@ def lambda_handler(event, context):
                 "Access-Control-Allow-Headers": "*",
                 "Content-Type": "application/json"
             },
-            "body": json.dumps({
-                "paste_id": paste_id,
-                "encrypted": encrypted,
-                "content": content,
-                "message": "Paste retrieved successfully"
-            })
+            "body": json.dumps(response_body)
         }
 
     except Exception as e:

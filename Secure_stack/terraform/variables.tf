@@ -1,5 +1,5 @@
 variable "project" {
-  default = "securestack"
+  default = "psstbin"
 }
 
 variable "vpc_cidr" {
