@@ -85,34 +85,45 @@ resource "aws_lambda_permission" "allow_apigw_invoke" {
 
 
 data "aws_iam_policy_document" "lambda_s3_dynamo_policy" {
-    statement {
-      actions = [
-        "s3:PutObject",
-        "s3:GetObject"
-        ]
-      resources = ["${var.bucket_arn}/*"]
-    }
+  statement {
+    sid    = "AllowPutAndGetObject"
+    actions = [
+      "s3:PutObject",
+      "s3:GetObject"
+    ]
+    resources = ["${var.bucket_arn}/*"]
 
-    statement {
-      actions = [
-        "dynamodb:PutItem",
-        "dynamodb:GetItem",
-        "dynamodb:UpdateItem"
-      ]
-      resources = [var.dynamodb_table_arn]
+    # Optional KMS enforcement
+    condition {
+      test     = "StringEquals"
+      variable = "s3:x-amz-server-side-encryption"
+      values   = ["aws:kms"]
     }
+  }
 
-statement {
-  actions = [
-    "logs:CreateLogGroup",
-    "logs:CreateLogStream",
-    "logs:PutLogEvents"
-  ]
-  resources = [
-    "arn:aws:logs:*:*:*"
-  ]
+  statement {
+    sid     = "DynamoMinimal"
+    actions = [
+      "dynamodb:PutItem",
+      "dynamodb:GetItem",
+      "dynamodb:UpdateItem"
+    ]
+    resources = [var.dynamodb_table_arn]
+  }
+
+  statement {
+    sid     = "LogsMinimal"
+    actions = [
+      "logs:CreateLogGroup",
+      "logs:CreateLogStream",
+      "logs:PutLogEvents"
+    ]
+    resources = [
+      "arn:aws:logs:${var.region}:${data.aws_caller_identity.current.account_id}:log-group:/aws/lambda/*"
+    ]
+  }
 }
-}
+
 
 resource "aws_iam_policy" "lambda_access" {
     name = "${var.project}-lambda-access"

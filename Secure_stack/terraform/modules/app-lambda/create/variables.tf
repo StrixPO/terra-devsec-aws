@@ -29,3 +29,5 @@ variable "bucket_arn" {
 variable "region" {
   type = string
 }
+
+data "aws_caller_identity" "current" {}
