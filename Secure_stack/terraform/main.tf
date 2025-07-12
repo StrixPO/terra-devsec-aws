@@ -82,8 +82,19 @@ module "logging" {
   source      = "./modules/logging"
   project     = var.project
   lambda_name = module.app-lambda_create.lambda_name
+  enable_guardduty = false # Turn off to prevent creation
+
 }
 
+terraform {
+  backend "s3" {
+    bucket         = "psstbin-tfstate-bucket"
+    key            = "global/terraform.tfstate"
+    region         = "us-east-1"
+    dynamodb_table = "psstbin-tfstate-locks"
+    encrypt        = true
+  }
+}
 
 output "bastion_ssh" {
   value = "ssh -i ${var.key_path} ec2-user@${module.bastion.bastion_public_ip}"
