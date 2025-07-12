@@ -86,15 +86,15 @@ module "logging" {
 
 }
 
-terraform {
-  backend "s3" {
-    bucket         = "psstbin-tfstate-bucket"
-    key            = "global/terraform.tfstate"
-    region         = "us-east-1"
-    dynamodb_table = "psstbin-tfstate-locks"
-    encrypt        = true
-  }
-}
+# terraform {
+#   backend "s3" {
+#     bucket         = "psstbin-tfstate-bucket"
+#     key            = "global/terraform.tfstate"
+#     region         = "us-east-1"
+#     dynamodb_table = "psstbin-tfstate-locks"
+#     encrypt        = true
+#   }
+# }
 
 output "bastion_ssh" {
   value = "ssh -i ${var.key_path} ec2-user@${module.bastion.bastion_public_ip}"
