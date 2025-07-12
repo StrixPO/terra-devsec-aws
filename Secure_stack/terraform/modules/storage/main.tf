@@ -1,9 +1,9 @@
 resource "aws_s3_bucket" "secure_paste" {
-  bucket = "${var.project}-pastes-"
+  bucket = "${var.project}-pastes-itshidden"
   force_destroy = true
 
   tags = {
-    Name = "${var.project}-pastes-itshidden"
+    Name = "${var.project}-pastes"
   }
 }
 
