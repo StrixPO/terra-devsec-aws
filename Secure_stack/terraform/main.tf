@@ -79,9 +79,9 @@ module "frontend" {
 
 
 module "logging" {
-  source      = "./modules/logging"
-  project     = var.project
-  lambda_name = module.app-lambda_create.lambda_name
+  source           = "./modules/logging"
+  project          = var.project
+  lambda_name      = module.app-lambda_create.lambda_name
   enable_guardduty = false # Turn off to prevent creation
 
 }
