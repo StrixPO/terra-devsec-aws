@@ -31,7 +31,7 @@ def lambda_handler(event, context):
                 "statusCode": 400,
                 "headers": {"Access-Control-Allow-Origin": "*"},
                 "body": json.dumps({
-                    "message": "Invalid paste_id format. Use 10-50 chars: letters, numbers, underscore, or dash."
+                    "message": "Invalid paste_id format. Use 10-50 chars: letters, numbers, or dash."
                 })
             }
 
