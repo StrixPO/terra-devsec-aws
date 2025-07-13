@@ -49,7 +49,7 @@ resource "aws_iam_role" "secure_app_role" {
 
 
 resource "aws_iam_instance_profile" "secure_app_profile" {
-  name = "${var.project}-app-instance-profile-3"
+  name = "${var.project}-app-instance-profile-4"
   role = aws_iam_role.secure_app_role.name
 }
 

@@ -1,38 +1,73 @@
-name: CI/CD
+name: Deploy SecurePaste
 
 on:
   push:
     branches: [main]
+
+env:
+  AWS_REGION: us-east-1
+
 jobs:
   deploy:
+    name: Terraform & Lambda Deploy
     runs-on: ubuntu-latest
 
+    defaults:
+      run:
+        # Set working directory to terraform inside SecurePaste
+        working-directory: ./web-app-terraform/SecurePaste/terraform
+
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v4
 
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: "3.11"
 
-      - name: Zip Lambda functions
-        working-directory: SecurePaste
-        run: |
-          mkdir -p terraform/artifacts
-          zip -j terraform/artifacts/create.zip app/lambda/create/lambda_function.py
-          zip -j terraform/artifacts/get.zip app/lambda/get/lambda_function.py
-          unzip -l terraform/artifacts/create.zip
-          unzip -l terraform/artifacts/get.zip
+      - name: Set up AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
 
       - name: Set up Terraform
         uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.6.6
 
-      - name: Terraform Init & Apply
-        working-directory: SecurePaste/terraform
+      - name: Terraform Format Check
+        run: terraform fmt -check
+
+      - name: Terraform Init
+        run: terraform init
+
+      - name: Terraform Validate
+        run: terraform validate
+
+      - name: Zip Lambda Functions
         run: |
-          terraform init
-          terraform apply -auto-approve
+          mkdir -p artifacts
+
+          # Zip the lambda functions using relative path from terraform dir
+          zip -j artifacts/create.zip ../app/lambda/create/lambda_function.py
+          zip -j artifacts/get.zip ../app/lambda/get/lambda_function.py
+
+          # List contents to verify zip
+          unzip -l artifacts/create.zip
+          unzip -l artifacts/get.zip
+
+      - name: Terraform Plan
+        run: terraform plan
         env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          TF_VAR_create_zip_path: artifacts/create.zip
+          TF_VAR_get_zip_path: artifacts/get.zip
+
+      - name: Terraform Apply
+        if: github.ref == 'refs/heads/main'
+        run: terraform apply -auto-approve
+        env:
+          TF_VAR_create_zip_path: artifacts/create.zip
+          TF_VAR_get_zip_path: artifacts/get.zip

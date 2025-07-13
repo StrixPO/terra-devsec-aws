@@ -23,7 +23,7 @@ resource "aws_s3_bucket_public_access_block" "frontend" {
 }
 
 resource "aws_cloudfront_origin_access_control" "frontend" {
-  name                              = "${var.project}-oac-susssh"
+  name                              = "${var.project}-oac-sussssh"
   description                       = "OAC for CloudFront to access frontend S3"
   origin_access_control_origin_type = "s3"
   signing_behavior                  = "always"
