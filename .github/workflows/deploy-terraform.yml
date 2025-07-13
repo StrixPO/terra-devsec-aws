@@ -49,11 +49,9 @@ jobs:
         run: |
           mkdir -p artifacts
 
-          zip artifacts/create.zip ../app/lambda/create/lambda_function.py
-          zip artifacts/get.zip ../app/lambda/get/lambda_function.py
+          zip artifacts/create.zip app/lambda/create/lambda_function.py
+          zip artifacts/get.zip app/lambda/get/lambda_function.py
 
-      - name: Verify ZIP contents
-        run: |
           unzip -l artifacts/create.zip
           unzip -l artifacts/get.zip
 
