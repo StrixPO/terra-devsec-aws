@@ -25,20 +25,17 @@ jobs:
 
       - name: Zip Lambda functions
         run: |
-          mkdir -p artifacts
-          zip -j artifacts/create.zip app/lambda/create/lambda_function.py
-          zip -j artifacts/get.zip app/lambda/get/lambda_function.py
-          unzip -l artifacts/create.zip
-          unzip -l artifacts/get.zip
-
-      - name: Set up Terraform
-        uses: hashicorp/setup-terraform@v3
-        with:
-          terraform_version: 1.7.5
+          mkdir -p $GITHUB_WORKSPACE/SecurePaste/terraform/artifacts
+          zip -j $GITHUB_WORKSPACE/SecurePaste/terraform/artifacts/create.zip \
+            $GITHUB_WORKSPACE/SecurePaste/app/lambda/create/lambda_function.py
+          zip -j $GITHUB_WORKSPACE/SecurePaste/terraform/artifacts/get.zip \
+            $GITHUB_WORKSPACE/SecurePaste/app/lambda/get/lambda_function.py
+          unzip -l $GITHUB_WORKSPACE/SecurePaste/terraform/artifacts/create.zip
+          unzip -l $GITHUB_WORKSPACE/SecurePaste/terraform/artifacts/get.zip
 
       - name: Terraform Init
         run: terraform init
-
+        working-directory: $GITHUB_WORKSPACE/SecurePaste/terraform
       - name: Terraform Format
         run: terraform fmt -check
 
