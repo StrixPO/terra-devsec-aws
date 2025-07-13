@@ -26,7 +26,7 @@ jobs:
           python-version: "3.11"
 
       - name: Zip Lambda functions
-        working-directory: ${{ github.workspace }}/SecurePaste
+        working-directory: terra-devsec-aws/SecurePaste
         run: |
           mkdir -p terraform/artifacts
           zip -j terraform/artifacts/create.zip app/lambda/create/lambda_function.py
