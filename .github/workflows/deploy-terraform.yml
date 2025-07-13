@@ -15,7 +15,7 @@ jobs:
     defaults:
       run:
         # Set working directory to terraform inside SecurePaste
-        working-directory: ./web-app-terraform/SecurePaste/terraform
+        working-directory: ./SecurePaste/terraform
 
     steps:
       - name: Checkout code
