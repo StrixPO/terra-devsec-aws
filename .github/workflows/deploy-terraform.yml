@@ -15,8 +15,10 @@ jobs:
         working-directory: terra-devsec-aws/SecurePaste/terraform
 
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          path: terra-devsec-aws
 
       - name: Set up Python for Lambda packaging
         uses: actions/setup-python@v5
