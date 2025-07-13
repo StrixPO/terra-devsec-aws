@@ -1,3 +1,13 @@
+terraform {
+  backend "s3" {
+    bucket         = "psstbin-tf-state-hidden"
+    key            = "securepaste/terraform.tfstate"
+    region         = "us-east-1"
+    dynamodb_table = "psstbin-tf-lock-hidden"
+    encrypt        = true
+  }
+}
+
 module "vpc" {
   source          = "./modules/vpc"
   project         = var.project

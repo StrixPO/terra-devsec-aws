@@ -1,68 +1,52 @@
-name: Deploy SecurePaste
+name: Terraform Deploy
 
 on:
   push:
-    branches: [main]
-
-env:
-  AWS_REGION: us-east-1
+    branches:
+      - main
 
 jobs:
   deploy:
-    name: Terraform & Lambda Deploy
     runs-on: ubuntu-latest
-
     defaults:
       run:
-        working-directory: ./Secure_stack/terraform
+        working-directory: SecurePaste/terraform
 
     steps:
-      - name: Checkout code
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up Python
+      - name: Setup Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
 
-      - name: Set up AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.8.4
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v2
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ env.AWS_REGION }}
+          aws-region: us-east-1
 
-      - name: Set up Terraform
-        uses: hashicorp/setup-terraform@v3
-        with:
-          terraform_version: 1.6.6
-
-      - name: Terraform Format
-        run: terraform fmt -check
+      - name: Zip Lambda Functions
+        run: |
+          mkdir -p artifacts
+          zip -j artifacts/create.zip ../app/lambda/create/lambda_function.py
+          zip -j artifacts/get.zip ../app/lambda/get/lambda_function.py
 
       - name: Terraform Init
         run: terraform init
 
       - name: Terraform Validate
         run: terraform validate
-      - name: Zip Lambda Functions
-        working-directory: SecurePaste
-        run: |
-          mkdir -p artifacts
-          zip -j artifacts/create.zip app/lambda/create/lambda_function.py
-          zip -j artifacts/get.zip app/lambda/get/lambda_function.py
-          unzip -l artifacts/create.zip
-          unzip -l artifacts/get.zip
 
       - name: Terraform Plan
-        run: terraform plan
-        env:
-          TF_VAR_create_zip_path: artifacts/create.zip
-          TF_VAR_get_zip_path: artifacts/get.zip
+        run: terraform plan -out=tfplan
 
       - name: Terraform Apply
-        if: github.ref == 'refs/heads/main'
-        run: terraform apply -auto-approve
-        env:
-          TF_VAR_create_zip_path: artifacts/create.zip
-          TF_VAR_get_zip_path: artifacts/get.zip
+        run: terraform apply -auto-approve tfplan
