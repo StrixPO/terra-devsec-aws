@@ -24,13 +24,13 @@ jobs:
           python-version: "3.11"
 
       - name: Zip Lambda functions
-        working-directory: ${{ github.workspace }}
+        working-directory: ${{ github.workspace }}/SecurePaste
         run: |
-          mkdir -p SecurePaste/terraform/artifacts
-          zip -j SecurePaste/terraform/artifacts/create.zip SecurePaste/app/lambda/create/lambda_function.py
-          zip -j SecurePaste/terraform/artifacts/get.zip SecurePaste/app/lambda/get/lambda_function.py
-          unzip -l SecurePaste/terraform/artifacts/create.zip
-          unzip -l SecurePaste/terraform/artifacts/get.zip
+          mkdir -p terraform/artifacts
+          zip -j terraform/artifacts/create.zip app/lambda/create/lambda_function.py
+          zip -j terraform/artifacts/get.zip app/lambda/get/lambda_function.py
+          unzip -l terraform/artifacts/create.zip
+          unzip -l terraform/artifacts/get.zip
 
       - name: Terraform Init
         working-directory: ${{ github.workspace }}/SecurePaste/terraform
