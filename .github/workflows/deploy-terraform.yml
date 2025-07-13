@@ -49,13 +49,8 @@ jobs:
         run: |
           mkdir -p artifacts
 
-          cd ../app/lambda/create
-          zip -r ../../../../terraform/artifacts/create.zip lambda_function.py
-          cd -
-
-          cd ../app/lambda/get
-          zip -r ../../../../terraform/artifacts/get.zip lambda_function.py
-          cd -
+          zip artifacts/create.zip ../app/lambda/create/lambda_function.py
+          zip artifacts/get.zip ../app/lambda/get/lambda_function.py
 
       - name: Verify ZIP contents
         run: |
