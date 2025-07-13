@@ -26,8 +26,8 @@ jobs:
       - name: Zip Lambda functions
         run: |
           mkdir -p artifacts
-          zip -j artifacts/create.zip ../app/lambda/create/lambda_function.py
-          zip -j artifacts/get.zip ../app/lambda/get/lambda_function.py
+          zip -j artifacts/create.zip app/lambda/create/lambda_function.py
+          zip -j artifacts/get.zip app/lambda/get/lambda_function.py
           unzip -l artifacts/create.zip
           unzip -l artifacts/get.zip
 
