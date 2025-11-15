@@ -45,7 +45,7 @@ variable "domain_name" {
 
 variable "acm_certificate_arn" {
   type        = string
-  description = "ACM certificate ARN for the frontend CloudFront"
+  description = "ACM certificate ARN for the frontend CloudF"
 }
 
 variable "route53_zone_id" {
