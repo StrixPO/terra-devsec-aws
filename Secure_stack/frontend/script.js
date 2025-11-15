@@ -1,4 +1,4 @@
-const API = "https://drcgp111jb.execute-api.us-east-1.amazonaws.com";
+const API = "https://i16jzfwtk5.execute-api.us-east-1.amazonaws.com";
 
 // Utility: Convert base64 to ArrayBuffer
 function base64ToArrayBuffer(base64) {

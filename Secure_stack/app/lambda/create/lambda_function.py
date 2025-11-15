@@ -15,20 +15,97 @@ bucket_name = os.environ.get('BUCKET_NAME', 'missing')
 
 MAX_INLINE_SIZE = 4096
 
+# def detect_secrets(content: str) -> list:
+#     patterns = {
+#         "AWS Access Key": r"AKIA[0-9A-Z]{16}",
+#         "Private Key": r"-----BEGIN (RSA|EC|DSA)? PRIVATE KEY-----",
+#         "Password Pattern": r"password\s*=\s*['\"].+?['\"]",
+#         "Secret Pattern": r"secret\s*=\s*['\"].+?['\"]",
+#         "JWT Token": r"eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+",
+#     }
+
+#     detected = []
+#     for label, pattern in patterns.items():
+#         if re.search(pattern, content, re.IGNORECASE):
+#             detected.append(label)
+#     return detected
+
 def detect_secrets(content: str) -> list:
+    detected = set()
+
+    # improved + expanded patterns
     patterns = {
-        "AWS Access Key": r"AKIA[0-9A-Z]{16}",
-        "Private Key": r"-----BEGIN (RSA|EC|DSA)? PRIVATE KEY-----",
-        "Password Pattern": r"password\s*=\s*['\"].+?['\"]",
-        "Secret Pattern": r"secret\s*=\s*['\"].+?['\"]",
-        "JWT Token": r"eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+",
+        "AWS Access Key": r"\bAKIA[0-9A-Z]{16}\b",
+        "Private Key": r"-----BEGIN (?:RSA|EC|DSA)? PRIVATE KEY-----",
+        "Password Pattern": r"(?i)\bpassword\s*[:=]\s*['\"][^'\"]+['\"]",
+        "Secret Pattern": r"(?i)\bsecret\s*[:=]\s*['\"][^'\"]+['\"]",
+        "JWT Token": r"\beyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\b",
+        "GitHub PAT": r"\b(?:gh[pousr]_[A-Za-z0-9_]{36}|github_pat_[A-Za-z0-9_]{22,255})\b",
+        "Azure GUID": r"\b[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-5][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}\b",
+        "Docker Auth Base64": r'"auth"\s*:\s*"([A-Za-z0-9+/=]{20,})"',
+        "GCP Service Account Email": r"\b[0-9a-zA-Z._%+-]+@[0-9a-zA-Z.-]+\.iam\.gserviceaccount\.com\b",
+        "Google API Key": r"\bAIza[0-9A-Za-z\-_]{35}\b",
+        # New GCP patterns for enhanced detection
+        "GCP Refresh Token": r"\b1\/[0-9a-zA-Z\-_]{35,}\b",
+        "GCP Client Secret": r"\b[A-Z0-9]{24}\b",
+        "GCP Client ID": r"\b[0-9]{12}-[a-z0-9]{32}\.apps\.googleusercontent\.com\b",
+        "GCP Private Key ID": r"\b[0-9a-f]{40}\b"
     }
 
-    detected = []
+    # trivial placeholders to ignore
+    placeholders = {"changeme", "password", "secret", "dummy", "example"}
+
+    # helper: simple entropy for base64-looking strings (inline, minimal)
+    def entropy(s: str) -> float:
+        from math import log2
+        if not s:
+            return 0.0
+        freq = {}
+        for c in s:
+            freq[c] = freq.get(c, 0) + 1
+        e = 0.0
+        length = len(s)
+        for count in freq.values():
+            p = count / length
+            e -= p * log2(p)
+        return e
+
+    # context check for Azure GUID to avoid orphan matches
+    def azure_guid_in_context(match_obj):
+        window = content[max(0, match_obj.start() - 40): match_obj.end() + 40].lower()
+        keywords = ["client_id", "tenant_id", "subscription_id", "applicationid", "app_id"]
+        return any(k in window for k in keywords)
+
     for label, pattern in patterns.items():
-        if re.search(pattern, content, re.IGNORECASE):
-            detected.append(label)
-    return detected
+        for m in re.finditer(pattern, content):
+            raw = m.group(0)
+            low = raw.lower()
+            if any(p in low for p in placeholders):
+                continue  # skip obvious dummy values
+
+            if label == "Azure GUID":
+                if not azure_guid_in_context(m):
+                    continue  # ignore GUIDs without related keywords
+
+            if label == "Docker Auth Base64":
+                inner = m.group(1)
+                if any(p in inner.lower() for p in placeholders):
+                    continue
+                # basic entropy threshold to avoid low-entropy junk
+                if entropy(inner) < 3.5:
+                    continue
+                detected.add(label)
+                continue
+
+            detected.add(label)
+
+    # lightweight heuristic for embedded full GCP service account JSON
+    if '"type"' in content and 'service_account' in content and '"private_key"' in content:
+        detected.add("GCP Service Account JSON")
+
+    return sorted(detected)
+
+
 
 def lambda_handler(event, context):
     if event["requestContext"]["http"]["method"] == "OPTIONS":

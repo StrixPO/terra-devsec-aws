@@ -83,10 +83,25 @@ module "app_lambda_get" {
 }
 
 module "frontend" {
-  source  = "./modules/frontend"
-  project = var.project
+  source              = "./modules/frontend"
+  project             = var.project
+  custom_domain       = var.custom_domain
+  certificate_arn = aws_acm_certificate_validation.cert_valid.certificate_arn
+  # certificate_arn = var.acm_certificate_arn
+
 }
 
+resource "aws_route53_record" "cf_alias" {
+  zone_id = "Z0962699123AAEL2UUPU6"
+  name    = "psstbin.com"
+  type    = "A"
+
+  alias {
+    name                   = module.frontend.cf_domain_name
+    zone_id                = module.frontend.cf_zone_id
+    evaluate_target_health = false
+  }
+}
 
 module "logging" {
   source           = "./modules/logging"
@@ -96,15 +111,14 @@ module "logging" {
 
 }
 
-# terraform {
-#   backend "s3" {
-#     bucket         = "psstbin-tfstate-bucket"
-#     key            = "global/terraform.tfstate"
-#     region         = "us-east-1"
-#     dynamodb_table = "psstbin-tfstate-locks"
-#     encrypt        = true
+# module "waf" {
+#   source = "./modules/waf"
+#   providers = {
+#     aws        = aws        # default provider
+#     aws.global = aws.global # explicitly pass the alias
 #   }
 # }
+
 
 output "bastion_ssh" {
   value = "ssh -i ${var.key_path} ec2-user@${module.bastion.bastion_public_ip}"

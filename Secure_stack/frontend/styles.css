@@ -34,7 +34,7 @@ section {
 textarea,
 input[type="text"],
 input[type="number"] {
-  width: 100%;
+  width: 96%;
   padding: 0.7rem;
   margin: 0.5rem 0;
   background-color: #222;
@@ -61,4 +61,8 @@ pre {
   padding: 1rem;
   border-radius: 5px;
   white-space: pre-wrap;
+}
+
+footer {
+  bottom: 0;
 }

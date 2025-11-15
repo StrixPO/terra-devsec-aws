@@ -26,6 +26,7 @@ resource "aws_lambda_function" "paste_create" {
       TABLE_NAME  = var.table_name
     }
   }
+  source_code_hash = filebase64sha256(var.create_zip_path)
 
   depends_on = [aws_iam_role.lambda_exec]
 }

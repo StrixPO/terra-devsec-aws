@@ -34,6 +34,8 @@ resource "aws_cloudfront_distribution" "frontend" {
   enabled             = true
   default_root_object = "index.html"
 
+
+
   origin {
     domain_name = aws_s3_bucket.frontend.bucket_regional_domain_name
     origin_id   = "frontend-origin"
@@ -58,13 +60,18 @@ resource "aws_cloudfront_distribution" "frontend" {
   }
 
   viewer_certificate {
-    cloudfront_default_certificate = true
+    acm_certificate_arn      = var.certificate_arn
+    ssl_support_method       = "sni-only"
+    minimum_protocol_version = "TLSv1.2_2021"
   }
+    aliases = var.custom_domain != null ? [var.custom_domain] : []
+
 
   restrictions {
     geo_restriction {
       restriction_type = "none"
     }
+
   }
 }
 
@@ -93,3 +100,5 @@ resource "aws_s3_bucket_policy" "frontend" {
     ]
   })
 }
+
+

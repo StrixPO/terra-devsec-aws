@@ -57,6 +57,7 @@ venv.bak/
 .terraform.lock.hcl
 terraform.tfstate
 terraform.tfstate.backup
+secrets.tfvars
 
 # AWS credentials (NEVER COMMIT THIS)
 *.pem
