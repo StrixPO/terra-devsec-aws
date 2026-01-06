@@ -5,6 +5,9 @@ resource "aws_lambda_function" "get_paste" {
   runtime = "python3.12"
   role          = var.lambda_exec_arn
   timeout       = 10
+
+  source_code_hash = filebase64sha256(var.get_zip_path)
+
   environment {
     variables = {
       BUCKET_NAME = var.bucket_name

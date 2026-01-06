@@ -57,3 +57,13 @@ variable "custom_domain" {
   type        = string
   description = "The domain name used for the frontend site"
 }
+
+
+
+variable "cloudflare_api_token" {
+  sensitive = true
+}
+
+variable "cloudflare_zone_id" {
+  
+}

@@ -1,1 +1,1 @@
-{"statusCode": 201, "body": "{\"message\": \"Paste test456 created.\", \"expiry_seconds\": 60, \"content_length\": 11}"}
+{"statusCode": 201, "headers": {"Access-Control-Allow-Origin": "*", "Content-Type": "application/json"}, "body": "{\"message\": \"Paste test123456 created.\", \"expiry_seconds\": 3600, \"content_length\": 11, \"secrets_detected\": false, \"secret_types\": []}"}

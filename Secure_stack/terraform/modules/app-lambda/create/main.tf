@@ -95,11 +95,11 @@ data "aws_iam_policy_document" "lambda_s3_dynamo_policy" {
     resources = ["${var.bucket_arn}/*"]
 
     # Optional KMS enforcement
-    condition {
-      test     = "StringEquals"
-      variable = "s3:x-amz-server-side-encryption"
-      values   = ["aws:kms"]
-    }
+    # condition {
+    #   test     = "StringEquals"
+    #   variable = "s3:x-amz-server-side-encryption"
+    #   values   = ["aws:kms"]
+    # }
   }
 
   statement {

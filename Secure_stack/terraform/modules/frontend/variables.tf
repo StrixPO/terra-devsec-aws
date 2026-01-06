@@ -14,7 +14,6 @@ variable "custom_domain" {
 #   default     = null
 # }
 
-variable "certificate_arn" {
-  type        = string
-  description = "The ARN of the validated ACM certificate in us-east-1 for CloudFront"
-}
+
+
+variable "cloudflare_zone_id" {}

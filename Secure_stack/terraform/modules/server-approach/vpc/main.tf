@@ -25,16 +25,16 @@ resource "aws_subnet" "public" {
   }
 }
 
-resource "aws_subnet" "private" {
-  count             = length(var.private_subnets)
-  vpc_id            = aws_vpc.main.id
-  cidr_block        = var.private_subnets[count.index]
-  availability_zone = element(var.azs, count.index)
+# resource "aws_subnet" "private" {
+#   count             = length(var.private_subnets)
+#   vpc_id            = aws_vpc.main.id
+#   cidr_block        = var.private_subnets[count.index]
+#   availability_zone = element(var.azs, count.index)
 
-  tags = {
-    Name = "${var.project}-private-${count.index + 1}"
-  }
-}
+#   tags = {
+#     Name = "${var.project}-private-${count.index + 1}"
+#   }
+# }
 
 resource "aws_route_table" "public" {
   vpc_id = aws_vpc.main.id

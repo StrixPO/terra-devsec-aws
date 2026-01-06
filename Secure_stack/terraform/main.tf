@@ -8,45 +8,45 @@ terraform {
   }
 }
 
-module "vpc" {
-  source          = "./modules/vpc"
-  project         = var.project
-  vpc_cidr        = var.vpc_cidr
-  public_subnets  = var.public_subnets
-  private_subnets = var.private_subnets
-  nat_instance_id = module.nat-instance.nat_instance_id
-  azs             = var.azs
-}
+# module "vpc" {
+#   source          = "./modules/vpc"
+#   project         = var.project
+#   vpc_cidr        = var.vpc_cidr
+#   public_subnets  = var.public_subnets
+#   private_subnets = var.private_subnets
+#   nat_instance_id = module.nat-instance.nat_instance_id
+#   azs             = var.azs
+# }
 
-module "nat-instance" {
-  source           = "./modules/nat-instance"
-  project          = var.project
-  nat_ami_id       = var.nat_ami_id
-  key_name         = var.key_name
-  public_subnet_id = module.vpc.public_subnets[0]
-  private_subnets  = module.vpc.private_subnets
-  vpc_id           = module.vpc.vpc_id
-}
+# module "nat-instance" {
+#   source           = "./modules/nat-instance"
+#   project          = var.project
+#   nat_ami_id       = var.nat_ami_id
+#   key_name         = var.key_name
+#   public_subnet_id = module.vpc.public_subnets[0]
+#   private_subnets  = module.vpc.private_subnets
+#   vpc_id           = module.vpc.vpc_id
+# }
 
-module "app" {
-  source        = "./modules/app"
-  project       = var.project
-  vpc_id        = module.vpc.vpc_id
-  key_name      = var.key_name
-  subnet_id     = module.vpc.private_subnets[0]
-  app_ami_id    = var.nat_ami_id
-  bastion_sg_id = module.bastion.bastion_sg_id
-  execution_arn = module.app-lambda_create.execution_arn
-}
+# module "app" {
+#   source        = "./modules/app"
+#   project       = var.project
+#   vpc_id        = module.vpc.vpc_id
+#   key_name      = var.key_name
+#   subnet_id     = module.vpc.private_subnets[0]
+#   app_ami_id    = var.nat_ami_id
+#   bastion_sg_id = module.bastion.bastion_sg_id
+#   execution_arn = module.app-lambda_create.execution_arn
+# }
 
-module "bastion" {
-  source    = "./modules/bastion"
-  ami_id    = var.ami_id
-  key_name  = var.key_name
-  vpc_id    = module.vpc.vpc_id
-  subnet_id = module.vpc.public_subnets[0]
-  project   = var.project
-}
+# module "bastion" {
+#   source    = "./modules/bastion"
+#   ami_id    = var.ami_id
+#   key_name  = var.key_name
+#   vpc_id    = module.vpc.vpc_id
+#   subnet_id = module.vpc.public_subnets[0]
+#   project   = var.project
+# }
 
 module "storage" {
   source  = "./modules/storage"
@@ -83,25 +83,24 @@ module "app_lambda_get" {
 }
 
 module "frontend" {
-  source              = "./modules/frontend"
-  project             = var.project
-  custom_domain       = var.custom_domain
-  certificate_arn = aws_acm_certificate_validation.cert_valid.certificate_arn
-  # certificate_arn = var.acm_certificate_arn
-
+  source               = "./modules/frontend"
+  project              = var.project
+  custom_domain         = var.custom_domain
+  cloudflare_zone_id   = var.cloudflare_zone_id
 }
 
-resource "aws_route53_record" "cf_alias" {
-  zone_id = "Z0962699123AAEL2UUPU6"
-  name    = "psstbin.com"
-  type    = "A"
 
-  alias {
-    name                   = module.frontend.cf_domain_name
-    zone_id                = module.frontend.cf_zone_id
-    evaluate_target_health = false
-  }
-}
+# resource "aws_route53_record" "cf_alias" {
+#   zone_id = "Z0962699123AAEL2UUPU6"
+#   name    = "psstbin.com"
+#   type    = "A"
+
+#   alias {
+#     name                   = module.frontend.cf_domain_name
+#     zone_id                = module.frontend.cf_zone_id
+#     evaluate_target_health = false
+#   }
+# }
 
 module "logging" {
   source           = "./modules/logging"
@@ -110,6 +109,15 @@ module "logging" {
   enable_guardduty = false # Turn off to prevent creation
 
 }
+
+module "cloudflare" {
+  source = "./modules/cloudflare"
+
+  cloudflare_zone_id   = var.cloudflare_zone_id
+  cloudflare_api_token = var.cloudflare_api_token
+  frontend_domain_name = module.frontend.cf_domain_name
+}
+
 
 # module "waf" {
 #   source = "./modules/waf"
@@ -120,7 +128,7 @@ module "logging" {
 # }
 
 
-output "bastion_ssh" {
-  value = "ssh -i ${var.key_path} ec2-user@${module.bastion.bastion_public_ip}"
-}
+# output "bastion_ssh" {
+#   value = "ssh -i ${var.key_path} ec2-user@${module.bastion.bastion_public_ip}"
+# }
 

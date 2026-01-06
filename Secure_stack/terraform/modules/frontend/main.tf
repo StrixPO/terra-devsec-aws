@@ -60,7 +60,7 @@ resource "aws_cloudfront_distribution" "frontend" {
   }
 
   viewer_certificate {
-    acm_certificate_arn      = var.certificate_arn
+    acm_certificate_arn      = aws_acm_certificate_validation.this.certificate_arn
     ssl_support_method       = "sni-only"
     minimum_protocol_version = "TLSv1.2_2021"
   }
@@ -77,6 +77,9 @@ resource "aws_cloudfront_distribution" "frontend" {
 
 resource "aws_s3_bucket_policy" "frontend" {
   bucket = aws_s3_bucket.frontend.id
+
+  # Add this line to ensure CloudFront is created first
+  depends_on = [aws_cloudfront_distribution.frontend]
 
   policy = jsonencode({
     Version = "2012-10-17"
@@ -100,5 +103,7 @@ resource "aws_s3_bucket_policy" "frontend" {
     ]
   })
 }
+
+
 
 

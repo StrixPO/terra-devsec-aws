@@ -108,7 +108,8 @@ def detect_secrets(content: str) -> list:
 
 
 def lambda_handler(event, context):
-    if event["requestContext"]["http"]["method"] == "OPTIONS":
+    # Handle CORS preflight - check if requestContext exists first
+    if "requestContext" in event and event.get("requestContext", {}).get("http", {}).get("method") == "OPTIONS":
         return {
             "statusCode": 200,
             "headers": {
