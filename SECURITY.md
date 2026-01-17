@@ -71,9 +71,10 @@ This project ensures secure **transit**, **storage**, and **ephemeral access**. 
 
 ## 📜 License & Legal
 
-This project is open-source under the [MIT License](./LICENSE).  
+This project is open-source under the [MIT License](./LICENSE.md).  
 No warranty is provided. Use at your own risk.
 
 ---
 
 Thanks for helping make PsstBin more secure 🙏
+
