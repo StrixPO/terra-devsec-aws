@@ -10,3 +10,7 @@ variable "enable_guardduty" {
   type    = bool
   default = false
 }
+
+variable "sns_endpoint_email" {
+  
+}

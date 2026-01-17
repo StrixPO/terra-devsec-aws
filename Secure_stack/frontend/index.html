@@ -1,4 +1,11 @@
-<!DOCTYPE html>
+<!--
+SECURITY MODEL (UI):
+- If "Encrypt with password" is enabled, encryption happens in-browser (AES-GCM).
+- The server never sees the password or plaintext (zero-trust goal).
+- Losing the password means content is unrecoverable.
+-->
+
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -24,7 +31,10 @@
           <h2>Create Paste</h2>
           <form
             id="create-form"
-            onsubmit="event.preventDefault(); createPaste();"
+            onsubmit="
+              event.preventDefault();
+              createPaste();
+            "
           >
             <div class="form-group">
               <label for="create-content">Your secret:</label>
@@ -47,18 +57,26 @@
             -->
 
             <div class="form-group">
-              <label for="create-expiry">Expiry (in seconds):</label>
-              <input type="number" id="create-expiry" value="3600" readonly />
+              <label for="create-expiry">Expiry:</label>
+              <select id="create-expiry">
+                <option value="300">5 minutes</option>
+                <option value="1800">30 minutes</option>
+                <option value="3600" selected>1 hour (recommended)</option>
+                <option value="21600">6 hours</option>
+                <option value="86400">1 day</option>
+                <option value="604800">7 days</option>
+              </select>
             </div>
 
-            <!--
             <div class="form-group checkbox">
               <input
                 type="checkbox"
                 id="create-encrypt"
                 onchange="togglePasswordField()"
               />
-              <label for="create-encrypt">Encrypt (AES-GCM)</label>
+              <label for="create-encrypt"
+                >🔐 Encrypt with password (optional)</label
+              >
             </div>
 
             <div class="form-group" id="password-wrapper" style="display: none">
@@ -66,10 +84,14 @@
               <input
                 type="password"
                 id="encryption-password"
-                placeholder="Strong password required"
+                placeholder="Strong password (min 8 characters)"
+                minlength="8"
               />
+              <small style="color: #888; display: block; margin-top: 0.3rem">
+                Your content will be encrypted in your browser before sending to
+                the server.
+              </small>
             </div>
-            -->
 
             <button type="submit">Create</button>
           </form>
@@ -79,7 +101,13 @@
         <!-- Get Paste Sectin -->
         <section>
           <h2>Get Paste</h2>
-          <form id="get-form" onsubmit="event.preventDefault(); getPaste();">
+          <form
+            id="get-form"
+            onsubmit="
+              event.preventDefault();
+              getPaste();
+            "
+          >
             <div class="form-group">
               <label for="get-id">Paste ID:</label>
               <input
@@ -90,12 +118,22 @@
               />
             </div>
 
-            <!-- Removed duplicate ID here by changing the input ID -->
+            <!-- Password field (shown only if needed) -->
             <div
               class="form-group"
               id="get-password-wrapper"
               style="display: none"
-            ></div>
+            >
+              <label for="get-password">🔐 Decryption Password:</label>
+              <input
+                type="password"
+                id="get-password"
+                placeholder="Enter password to decrypt"
+              />
+              <small style="color: #888; display: block; margin-top: 0.3rem">
+                This paste is encrypted. Enter the password to view it.
+              </small>
+            </div>
 
             <button type="submit">Fetch</button>
           </form>
@@ -114,13 +152,11 @@
 
     <script src="script.js"></script>
     <script>
-      /*
       function togglePasswordField() {
         const checkbox = document.getElementById("create-encrypt");
         const passwordWrapper = document.getElementById("password-wrapper");
         passwordWrapper.style.display = checkbox.checked ? "block" : "none";
       }
-      */
     </script>
   </body>
 </html>

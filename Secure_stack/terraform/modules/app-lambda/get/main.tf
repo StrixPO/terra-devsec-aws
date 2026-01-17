@@ -1,10 +1,12 @@
 resource "aws_lambda_function" "get_paste" {
   function_name = "${var.project}-get-paste"
   filename      = var.get_zip_path
-  handler = "lambda_function.lambda_handler"
-  runtime = "python3.12"
-  role          = var.lambda_exec_arn
-  timeout       = 10
+  handler       = "lambda_function.lambda_handler"
+  runtime       = "python3.12"
+
+  # Uses shared Lambda exec role passed from root module.
+  role    = var.lambda_exec_arn
+  timeout = 10
 
   source_code_hash = filebase64sha256(var.get_zip_path)
 
@@ -14,7 +16,9 @@ resource "aws_lambda_function" "get_paste" {
       TABLE_NAME  = var.table_name
     }
   }
-depends_on = [aws_iam_role_policy_attachment.attach_lambda_access_get]
+
+  # Ensure policy attachment exists before function runs.
+  depends_on = [aws_iam_role_policy_attachment.attach_lambda_access_get]
 }
 
 resource "aws_apigatewayv2_integration" "lambda_get_integration" {
@@ -25,25 +29,24 @@ resource "aws_apigatewayv2_integration" "lambda_get_integration" {
   payload_format_version = "2.0"
 }
 
-# Route
 resource "aws_apigatewayv2_route" "get_paste_route" {
   api_id    = var.api_id
   route_key = "POST /paste"
   target    = "integrations/${aws_apigatewayv2_integration.lambda_get_integration.id}"
 }
 
-# Lambda permission
+# Permission for API Gateway -> Lambda.
+# SECURITY NOTE: you can tighten this to only /paste route like you did for /create.
 resource "aws_lambda_permission" "allow_api_get" {
   statement_id  = "AllowAPIInvokePasteGet"
   action        = "lambda:InvokeFunction"
   function_name = aws_lambda_function.get_paste.function_name
   principal     = "apigateway.amazonaws.com"
-  source_arn    = "${var.api_execution_arn}/*/*"
+
+  source_arn = "${var.api_execution_arn}/*/*"
 }
 
 resource "aws_iam_role_policy_attachment" "attach_lambda_access_get" {
-  role       = var.lambda_exec_name
+  role      = var.lambda_exec_name
   policy_arn = var.lambda_access_policy_arn
 }
-
-

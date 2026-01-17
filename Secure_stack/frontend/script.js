@@ -90,6 +90,26 @@ function extractPasteId(message) {
 
 async function createPaste() {
   const content = document.getElementById("create-content").value.trim();
+
+  // Validate content isn't empty
+  if (!content) {
+    document.getElementById("create-response").textContent =
+      "❌ Error: Content cannot be empty";
+    return;
+  }
+
+  // Check size limit (1MB)
+  const contentSize = new Blob([content]).size;
+  const maxSize = 1048576;
+  if (contentSize > maxSize) {
+    document.getElementById(
+      "create-response"
+    ).textContent = `❌ Error: Content too large (${(
+      contentSize / 1024
+    ).toFixed(1)}KB). Maximum is 1MB.`;
+    return;
+  }
+
   const pasteId =
     document.getElementById("create-id")?.value.trim() || undefined;
   const expiryInput = document.getElementById("create-expiry");
@@ -98,47 +118,114 @@ async function createPaste() {
   const password =
     document.getElementById("encryption-password")?.value.trim() || "";
 
+  // Validate password if encryption enabled
+  if (encrypt && !password) {
+    document.getElementById("create-response").textContent =
+      "❌ Error: Password required when encryption is enabled";
+    return;
+  }
+
+  if (encrypt && password.length < 8) {
+    document.getElementById("create-response").textContent =
+      "❌ Error: Password must be at least 8 characters";
+    return;
+  }
+
   let payload = {
     paste_id: pasteId,
     expiry_seconds: expiry,
     content_encrypted: encrypt,
   };
 
+  // Encrypt if requested
   if (encrypt && password) {
-    const result = await encryptContent(content, password);
-    payload.content = result.encryptedContent;
-    payload.salt = result.salt;
-    payload.iv = result.iv;
+    try {
+      document.getElementById("create-response").textContent =
+        "🔐 Encrypting...";
+      const result = await encryptContent(content, password);
+      payload.content = result.encryptedContent;
+      payload.salt = result.salt;
+      payload.iv = result.iv;
+    } catch (err) {
+      document.getElementById(
+        "create-response"
+      ).textContent = `❌ Encryption error: ${err.message}`;
+      return;
+    }
   } else {
     payload.content = content;
   }
 
-  fetch(`${API}/create`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload),
-  })
-    .then((res) => res.json())
-    .then((data) => {
-      const id = data.paste_id || extractPasteId(data.message);
-      const outputLines = [
-        `✅ Paste Created Successfully!`,
-        `📄 Paste ID: ${id}`,
-        `⏳ Expires in: ${data.expiry_seconds} seconds`,
-        `📦 Content Length: ${data.content_length} characters`,
-        `🕵️ Secrets Detected: ${data.secrets_detected ? "Yes" : "No"}`,
-      ];
-      if (data.secrets_detected && data.secret_types.length) {
-        outputLines.push(`🔒 Secret Types: ${data.secret_types.join(", ")}`);
-      }
-      document.getElementById("create-response").textContent =
-        outputLines.join("\n");
-    })
-    .catch((err) => {
-      document.getElementById("create-response").textContent =
-        "Error: " + err.message;
+  try {
+    document.getElementById("create-response").textContent = "📤 Submitting...";
+
+    const res = await fetch(`${API}/create`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
     });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      document.getElementById("create-response").textContent = `❌ Error ${
+        res.status
+      }: ${data.message || "Unknown error"}`;
+      return;
+    }
+
+    const id = data.paste_id || extractPasteId(data.message);
+    const outputLines = [
+      `✅ Paste Created Successfully!`,
+      `📄 Paste ID: ${id}`,
+      `⏳ Expires in: ${data.expiry_seconds} seconds (${formatExpiry(
+        data.expiry_seconds
+      )})`,
+      `📦 Content Length: ${data.content_length} bytes`,
+    ];
+
+    if (encrypt) {
+      outputLines.push(`🔐 Encryption: Enabled (password required to view)`);
+      outputLines.push(`🔑 Remember your password - it cannot be recovered!`);
+    } else {
+      outputLines.push(`🔓 Encryption: Disabled (plain text)`);
+    }
+
+    // Show warning if secrets detected
+    if (data.secrets_detected && !encrypt) {
+      outputLines.push(``);
+      outputLines.push(`⚠️  WARNING: Potential secrets detected!`);
+      outputLines.push(`🔒 Secret Types: ${data.secret_types.join(", ")}`);
+      outputLines.push(
+        `💡 Consider deleting this paste and recreating with encryption enabled.`
+      );
+    } else if (data.secrets_detected && encrypt) {
+      outputLines.push(``);
+      outputLines.push(
+        `✅ Secrets detected but content is encrypted - secure!`
+      );
+    } else {
+      outputLines.push(`✅ No sensitive patterns detected`);
+    }
+
+    document.getElementById("create-response").textContent =
+      outputLines.join("\n");
+  } catch (err) {
+    document.getElementById(
+      "create-response"
+    ).textContent = `❌ Network error: ${err.message}`;
+  }
 }
+
+// Helper function to format expiry time
+function formatExpiry(seconds) {
+  if (seconds < 3600) return `${Math.floor(seconds / 60)} minutes`;
+  if (seconds < 86400) return `${Math.floor(seconds / 3600)} hours`;
+  return `${Math.floor(seconds / 86400)} days`;
+}
+
+// Store the fetched paste data globally so we can decrypt it without refetching
+let cachedPasteData = null;
 
 async function getPaste() {
   const idElement = document.getElementById("get-id");
@@ -148,16 +235,67 @@ async function getPaste() {
   }
   const id = idElement.value.trim();
 
-  // Since password input removed, no password variable needed:
-  // const password = ""; // or omit
+  if (!id) {
+    document.getElementById("get-response").textContent =
+      "❌ Please enter a Paste ID";
+    return;
+  }
 
   const responseBox = document.getElementById("get-response");
+  const passwordWrapper = document.getElementById("get-password-wrapper");
+  const passwordInput = document.getElementById("get-password");
+
   if (!responseBox) {
     console.error("Response box #get-response not found");
     return;
   }
 
-  responseBox.textContent = "Loading...";
+  // If we have cached data and user entered password, try to decrypt
+  if (cachedPasteData && cachedPasteData.encrypted) {
+    const password = passwordInput ? passwordInput.value.trim() : "";
+
+    if (!password) {
+      responseBox.textContent =
+        "❌ Please enter the decryption password above.";
+      return;
+    }
+
+    try {
+      responseBox.textContent = "🔓 Decrypting...";
+
+      const decrypted = await decryptContent(
+        cachedPasteData.content,
+        password,
+        cachedPasteData.salt,
+        cachedPasteData.iv
+      );
+
+      if (decrypted === "[Decryption failed]") {
+        responseBox.textContent =
+          "❌ Decryption failed. Wrong password? Try again.";
+        // Keep password field visible
+      } else {
+        responseBox.textContent = `🔓 Decrypted content:\n\n${decrypted}\n\n⚠️ This was a one-time paste and has been destroyed.`;
+        // Clear cache and hide password field
+        cachedPasteData = null;
+        if (passwordWrapper) passwordWrapper.style.display = "none";
+        if (passwordInput) passwordInput.value = "";
+        if (idElement) idElement.value = "";
+      }
+    } catch (err) {
+      console.error("Decryption error:", err);
+      responseBox.textContent = `❌ Decryption error: ${err.message}`;
+    }
+    return;
+  }
+
+  // Otherwise, fetch the paste from API (only happens once)
+  responseBox.textContent = "🔍 Fetching paste...";
+
+  // Hide password field initially
+  if (passwordWrapper) {
+    passwordWrapper.style.display = "none";
+  }
 
   try {
     const res = await fetch(`${API}/paste`, {
@@ -168,21 +306,65 @@ async function getPaste() {
 
     const data = await res.json();
 
+    console.log("Full API response:", data);
+
     if (!res.ok) {
-      responseBox.textContent = `Error: ${res.status} - ${
-        data.message || "Unknown error"
-      }`;
+      cachedPasteData = null; // Clear cache on error
+
+      if (res.status === 410) {
+        responseBox.textContent = `⏰ ${data.message}`;
+      } else if (res.status === 404) {
+        responseBox.textContent = `❌ Paste not found. Check the ID and try again.`;
+      } else {
+        responseBox.textContent = `❌ Error ${res.status}: ${
+          data.message || "Unknown error"
+        }`;
+      }
       return;
     }
 
-    // Since no encryption, just show plain content:
-    if (data.content) {
-      responseBox.textContent = data.content;
+    // Cache the paste data
+    cachedPasteData = data;
+
+    // Check if the paste is encrypted
+    if (data.encrypted === true) {
+      console.log("Paste is encrypted, asking for password...");
+
+      // Check if we have the required decryption metadata
+      if (!data.salt || !data.iv) {
+        responseBox.textContent =
+          "❌ Error: Missing encryption metadata (salt/iv)";
+        cachedPasteData = null;
+        return;
+      }
+
+      // Show password field
+      if (passwordWrapper) {
+        passwordWrapper.style.display = "block";
+      }
+      responseBox.textContent =
+        "🔐 This paste is encrypted.\nEnter the password above and click 'Fetch Paste' again to decrypt.";
     } else {
-      responseBox.textContent = "[❓ Unknown response structure]";
+      // Plain text paste - show immediately
+      console.log("Paste is not encrypted, showing content");
+      if (data.content) {
+        responseBox.textContent = `${data.content}\n\n⚠️ This was a one-time paste and has been destroyed.`;
+        cachedPasteData = null; // Clear cache
+        if (idElement) idElement.value = ""; // Clear ID field
+      } else {
+        console.log("No content field in response. Full data:", data);
+        responseBox.textContent = `[❓ No content in response]\n\nDebug: ${JSON.stringify(
+          data,
+          null,
+          2
+        )}`;
+        cachedPasteData = null;
+      }
     }
   } catch (err) {
-    responseBox.textContent = "Error: " + err.message;
+    console.error("Fetch error:", err);
+    responseBox.textContent = "❌ Network error: " + err.message;
+    cachedPasteData = null;
   }
 }
 

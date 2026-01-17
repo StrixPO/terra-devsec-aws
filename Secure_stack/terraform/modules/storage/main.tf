@@ -71,3 +71,21 @@ resource "aws_iam_policy" "secure_paste_access" {
   policy = data.aws_iam_policy_document.secure_paste_policy.json
 }
 
+resource "aws_s3_bucket_lifecycle_configuration" "paste_cleanup" {
+  bucket = aws_s3_bucket.secure_paste.id  
+
+  rule {
+    id     = "delete-expired-pastes"
+    status = "Enabled"
+
+    # Delete pastes older than 2 days
+    expiration {
+      days = 2
+    }
+
+    # Clean up incomplete multipart uploads
+    abort_incomplete_multipart_upload {
+      days_after_initiation = 1
+    }
+  }
+}

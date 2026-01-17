@@ -7,9 +7,9 @@ resource "aws_acm_certificate" "frontend_cert" {
   tags = {
     Project = var.project
   }
-  # lifecycle {
-  #   prevent_destroy = true
-  # }
+  lifecycle {
+    prevent_destroy = true
+  }
 }
 
 # Route 53 DNS validation record

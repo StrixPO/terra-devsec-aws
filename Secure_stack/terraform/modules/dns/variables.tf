@@ -1,5 +1,5 @@
 variable "domain_name" {
-  description = "Custom domain to use for the frontend (e.g. paste.example.com)"
+  description = "Custom domain to use for the frontend"
   type        = string
 }
 
