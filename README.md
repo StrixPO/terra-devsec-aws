@@ -131,27 +131,92 @@ Based on moderate usage (1000 pastes/month):
 
 Within AWS Free Tier: ~$0-1/month for first 12 months
 
-## 🔒 Security
+## 🔐 Security Model
 
-### Client-Side Encryption
+PsstBin is designed as an **ephemeral, privacy-first pastebin** with explicit security tradeoffs.  
+It supports **two privacy modes** to balance confidentiality, usability, and safety.
 
-- **Algorithm:** AES-256-GCM
-- **Key Derivation:** PBKDF2 (100,000 iterations, SHA-256)
-- **Salt:** 16 bytes (random per paste)
-- **IV:** 12 bytes (random per paste)
+---
 
-### Secret Detection Patterns
+### Privacy Modes
 
-Automatically detects:
+#### 1) Encrypted Mode (Default – Zero-Knowledge)
+- Paste content is **encrypted in the browser before upload** (AES-GCM).
+- The backend **never sees plaintext** and treats content as opaque ciphertext.
+- Only **non-secret metadata** is stored server-side:
+  - expiry timestamp (TTL)
+  - one-time-read flag
+  - encryption metadata (salt, IV)
+- **Encryption keys are never transmitted or stored** on the server.
 
-- AWS Access Keys (AKIA...)
-- Private SSH/SSL Keys
-- GitHub Personal Access Tokens
-- Google API Keys
-- JWT Tokens
-- Azure GUIDs (with context checking)
-- GCP Service Account Keys
-- Password/Secret patterns in code
+> In this mode, the system is **zero-knowledge by design**: compromise of backend infrastructure does not expose paste contents.
+
+---
+
+#### 2) Plaintext Mode (Optional – UX Warnings)
+- Paste content is uploaded **unencrypted**.
+- The backend runs **best-effort secret detection** (regex + heuristics) to identify:
+  - cloud credentials
+  - API keys
+  - private keys
+  - tokens (GitHub, JWT, GCP, etc.)
+- Only **secret categories** are recorded (not values).
+- If potential secrets are detected, the user receives a **warning encouraging encryption**.
+
+> Secret detection is **not a security boundary**.  
+> False positives and negatives are expected. This feature exists solely as a safety nudge.
+
+---
+
+### Threat Model
+
+#### What PsstBin Protects Against
+- Accidental disclosure via long-lived or reused paste URLs
+- Backend compromise exposing stored data
+- Passive infrastructure-level data access
+- Enumeration attacks via non-guessable paste IDs
+- Over-retention of sensitive data (via TTL enforcement)
+
+#### What PsstBin Does **Not** Protect Against
+- Compromised client devices or browsers
+- Malicious browser extensions
+- Link sharing outside trusted channels
+- Users choosing plaintext mode for sensitive data
+- Weak or reused passphrases (if used)
+
+---
+
+### Storage & Data Lifecycle
+
+- **Small pastes** are stored inline in DynamoDB.
+- **Large pastes** are stored in S3 with server-side encryption (SSE-S3).
+- All pastes have a **hard TTL** (5 minutes – 7 days).
+- One-time read semantics ensure pastes are invalidated after retrieval.
+- Deletion is best-effort and enforced via DynamoDB TTL + lifecycle policies.
+
+---
+
+### Defense in Depth
+
+- Strict paste ID validation (non-enumerable, length-limited).
+- API Gateway throttling to reduce abuse and cost amplification.
+- No sensitive content is logged (plaintext or ciphertext).
+- Encryption at rest is treated as **defense-in-depth**, not a trust boundary.
+
+---
+
+### Design Philosophy
+
+PsstBin intentionally avoids claiming “perfect security.”
+
+Instead, it focuses on:
+- **Explicit trust boundaries**
+- **Short data lifetimes**
+- **Client-side confidentiality by default**
+- **Clear tradeoffs over hidden behavior**
+
+Security features are implemented to reduce *realistic risk*, not to check buzzword boxes.
+
 
 ### Data Lifecycle
 
@@ -248,3 +313,4 @@ MIT License - see [LICENSE](LICENSE) for details.
 ---
 
 **⚠️ Disclaimer:** This is a hobby project. While it implements strong encryption, it's not audited. Use at your own risk for production secrets. For enterprise use, consider proper secret management tools like HashiCorp Vault or AWS Secrets Manager.
+
