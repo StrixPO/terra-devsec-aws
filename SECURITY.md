@@ -1,80 +1,114 @@
 # 🔐 Security Policy
 
-## 📣 Reporting a Vulnerability
-
-We take security seriously.
-
-If you discover a vulnerability or have a security concern, please **do not open a public GitHub issue**. Instead, report it **privately** to the maintainer at:
-
-📧 `wrkrusar@gmail.com`  
-✉️ (Or use GitHub's private vulnerability reporting feature)
-
-We will respond within **3 working days** and aim to patch verified issues within **7 days** of triage.
+This document describes how to responsibly report security issues in **PsstBin**,  
+and outlines the project’s security boundaries and guarantees.
 
 ---
 
-## 🛡️ Project Security Principles
+## 📣 Reporting a Vulnerability
 
-PsstBin was built from the ground up with **DevSecOps and zero-trust** principles. Key tenets include:
+If you discover a security vulnerability or have a responsible disclosure:
 
-- **Client-side encryption (optional):** Sensitive content never touches the backend in plaintext if encrypted.
-- **One-time access (burn-after-read):** Pastes are destroyed after retrieval to minimize exposure.
-- **Serverless + ephemeral:** No long-running infrastructure; no unnecessary open ports.
-- **Secrets detection & alerting:** AWS Lambda scans for patterns like API keys or credentials.
-- **WAF protection:** API Gateway is shielded by AWS WAF with OWASP rules and rate-limiting.
-- **Minimal IAM roles:** Follows least-privilege access for Lambda, S3, and DynamoDB.
+- **Do not open a public GitHub issue**
+- Report privately via:
+  - 📧 Email: `wrkrusar@gmail.com`
+  - ✉️ GitHub’s **Private Vulnerability Reporting**
+
+### Response Targets
+- Initial response: **within 3 business days**
+- Verified issue triage: **within 7 days**
+
+We appreciate responsible disclosure and coordinated fixes.
+
+---
+
+## 🛡️ Security Scope & Principles
+
+PsstBin is an **ephemeral, serverless pastebin** designed with the following principles:
+
+- **Short-lived data by default** (mandatory TTL)
+- **Client-side encryption support** (zero-knowledge mode)
+- **Minimal backend trust**
+- **Explicit security tradeoffs**
+
+Security features are implemented to reduce realistic risk, not to guarantee absolute secrecy.
+
+---
+
+## 🔐 Data Handling Modes
+
+### Encrypted Mode (Default)
+- Paste content is **encrypted in the browser** before upload.
+- The backend stores **only ciphertext and non-secret metadata**.
+- Encryption keys are **never transmitted or stored**.
+- In this mode, the backend **cannot inspect, scan, or decrypt content**.
+
+### Plaintext Mode (Optional)
+- Paste content is uploaded unencrypted.
+- Backend performs **best-effort secret detection** (regex + heuristics).
+- Only **secret categories** are recorded (never raw values).
+- Used solely to **warn users** and encourage encryption.
+
+> Secret detection is a **UX warning mechanism**, not a security boundary.
 
 ---
 
 ## 🧠 Threat Model Summary
 
-| Threat                             | Mitigation Strategy                          |
-| ---------------------------------- | -------------------------------------------- |
-| Unauthorized access to stored data | S3 encryption + optional client-side AES-GCM |
-| Replay attacks                     | One-time use design (used flag)              |
-| Secret leakage (e.g., API keys)    | Secret scanning + CloudWatch alerts          |
-| Injection or malformed input       | Lambda input validation, no dynamic eval     |
-| Brute-force or enumeration attacks | WAF rate limits + UUID fallback              |
-| Insider misconfiguration           | Terraform IaC + CloudTrail logging           |
+| Threat                          | Mitigation                                      |
+|---------------------------------|-------------------------------------------------|
+| Backend data exposure           | Client-side encryption (encrypted mode)        |
+| Long-lived data leakage         | Mandatory TTL + one-time read                  |
+| Paste enumeration               | Non-guessable IDs + strict validation          |
+| Accidental secret sharing       | Optional plaintext warnings                    |
+| Oversized / abusive payloads    | Size limits + API Gateway throttling            |
 
 ---
 
-## 🧬 Dependency Management
+## 🚫 Out of Scope / Non-Goals
 
-- **Lambda:** Python 3.x, Boto3 (no third-party deps by default)
-- **CLI:** `requests`, `click`, `.env` (no known CVEs in pinned versions)
-- **Frontend:** Pure HTML/JS/CSS, using WebCrypto only
+PsstBin does **not** protect against:
 
-No CDN libraries or unverified packages are used in production.
+- Compromised user devices or browsers
+- Malicious browser extensions
+- Shared paste URLs being forwarded
+- Weak or reused passphrases
+- Users choosing plaintext mode for sensitive data
+
+---
+
+## 🔍 Logging & Observability
+
+- Paste **content is never logged** (plaintext or ciphertext).
+- Logs are limited to metadata (sizes, flags, request flow).
+- Infrastructure auditing relies on AWS-native tooling.
 
 ---
 
 ## 🔒 Boundary of Responsibility
 
-This project ensures secure **transit**, **storage**, and **ephemeral access**. However:
-
-> 🔸 **We cannot decrypt user data** if client-side encryption is used — lost passwords mean lost data.  
-> 🔸 End-users must ensure their devices and browsers are secure when using the frontend.  
-> 🔸 We do not store logs of paste content.
+- Users are responsible for safeguarding decryption keys and links.
+- Lost keys or expired pastes **cannot be recovered**.
+- PsstBin provides **no warranty** for data availability or persistence.
 
 ---
 
-## 🔍 Security Testing & Auditing Tools
+## 🧪 Security Testing & Hygiene
 
-- [x] AWS WAF (OWASP top 10)
-- [x] AWS CloudTrail + GuardDuty
-- [x] `tfsec`, `checkov` for Terraform code
-- [x] GitHub Actions CI + vulnerability scanning
-- [x] IAM access analyzer (manual reviews)
+- Terraform IaC with manual IAM review
+- Static validation of inputs
+- Minimal third-party dependencies
+- CI-based dependency and code scanning (where applicable)
 
----
-
-## 📜 License & Legal
-
-This project is open-source under the [MIT License](./LICENSE.md).  
-No warranty is provided. Use at your own risk.
+This project has **not undergone a formal third-party security audit**.
 
 ---
 
-Thanks for helping make PsstBin more secure 🙏
+## 📜 Legal
 
+This project is released under the [MIT License](./LICENSE.md).  
+Use at your own risk.
+
+---
+
+Thank you for helping improve PsstBin’s security posture 🙏
