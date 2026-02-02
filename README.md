@@ -4,7 +4,6 @@ End-to-end encrypted pastebin with burn-after-reading and automatic secret detec
 
 **Live Demo:** [psstbin.com](https://psstbin.com)
 
-![PsstBin Architecture](docs/architecture.png) <!-- We'll create this -->
 
 ## ✨ Features
 
@@ -313,4 +312,5 @@ MIT License - see [LICENSE](LICENSE) for details.
 ---
 
 **⚠️ Disclaimer:** This is a hobby project. While it implements strong encryption, it's not audited. Use at your own risk for production secrets. For enterprise use, consider proper secret management tools like HashiCorp Vault or AWS Secrets Manager.
+
 
