@@ -44,7 +44,7 @@ Complete step-by-step guide to deploy PsstBin to your own AWS account.
    aws configure
    # Enter your Access Key ID
    # Enter your Secret Access Key
-   # Region: us-east-1 (or your preferred region)
+   # Region: us-east-1
    # Output: json
 ```
 
@@ -181,7 +181,7 @@ const API = "https://abc123.execute-api.us-east-1.amazonaws.com";
 terraform output  # Look for frontend_bucket_name
 
 # Upload files
-aws s3 sync ../frontend s3://psstbin-frontend/ --exclude ".git/*"
+aws s3 sync ../frontend s3://$(terraform output -raw frontend_bucket_name)/ --exclude ".git/*"
 ```
 
 ### 10. Get CloudFront Distribution ID
@@ -328,6 +328,6 @@ Type `yes` when prompted.
 
 ## Getting Help
 
-- **GitHub Issues:** https://github.com/yourusername/psstbin/issues
+- **GitHub Issues:** https://github.com/StrixPO/terra-devsec-aws/issues
 - **Terraform Docs:** https://registry.terraform.io/providers/hashicorp/aws/latest/docs
 - **AWS Support:** https://console.aws.amazon.com/support/
